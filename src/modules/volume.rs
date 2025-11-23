@@ -1,7 +1,7 @@
 use crate::channels::{AsyncSenderExt, BroadcastReceiverExt};
 use crate::clients::volume::{self, Event};
-use crate::config::{CommonConfig, LayoutConfig, TruncateMode};
-use crate::gtk_helpers::IronbarLabelExt;
+use crate::config::{CommonConfig, LayoutConfig, MarqueeMode, TruncateMode};
+use crate::gtk_helpers::{self, IronbarLabelExt};
 use crate::modules::{
     Module, ModuleInfo, ModuleParts, ModulePopup, ModuleUpdateEvent, PopupButton, WidgetContext,
 };
@@ -46,6 +46,12 @@ pub struct VolumeModule {
     /// **Default**: `null`
     pub(crate) truncate: Option<TruncateMode>,
 
+    /// See [marquee options](module-level-options#marquee-mode).
+    ///
+    /// **Default**: `null`
+    #[serde(default)]
+    pub(crate) marquee: Option<MarqueeMode>,
+
     /// See [layout options](module-level-options#layout)
     #[serde(default, flatten)]
     layout: LayoutConfig,
@@ -62,6 +68,7 @@ impl Default for VolumeModule {
             max_volume: 100.0,
             icons: Icons::default(),
             truncate: None,
+            marquee: None,
             layout: LayoutConfig::default(),
             common: Some(CommonConfig::default()),
         }
@@ -449,6 +456,17 @@ impl Module<Button> for VolumeModule {
 
                         if let Some(truncate) = self.truncate {
                             label.truncate(truncate);
+                            item_container.append(&label);
+                        } else if let Some(marquee) = self.marquee.clone() {
+                            if marquee.enable {
+                                let scrolled =
+                                    gtk_helpers::create_marquee_widget(&label, &info.name, marquee);
+                                item_container.append(&scrolled);
+                            } else {
+                                item_container.append(&label);
+                            }
+                        } else {
+                            item_container.append(&label);
                         }
 
                         let slider = Scale::builder().sensitive(info.can_set_volume).build();
@@ -485,7 +503,6 @@ impl Module<Button> for VolumeModule {
                             });
                         }
 
-                        item_container.append(&label);
                         item_container.append(&slider);
                         item_container.append(&btn_mute);
 
