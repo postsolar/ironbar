@@ -1,7 +1,7 @@
 Displays the current volume level.
 Clicking on the widget opens a volume mixer, which allows you to change the device output level,
 the default playback device, and control application volume levels individually.
-Use `truncate` option to control the display of application titles in the volume mixer.
+Use `truncate` or `marquee` options to control the display of application titles in the volume mixer.
 
 This requires PulseAudio to function (`pipewire-pulse` is supported).
 
@@ -11,18 +11,26 @@ This requires PulseAudio to function (`pipewire-pulse` is supported).
 
 > Type: `volume`
 
-| Name                  | Type                                                 | Default                | Description                                                                                                    |
-|-----------------------|------------------------------------------------------|------------------------|----------------------------------------------------------------------------------------------------------------|
-| `format`              | `string`                                             | `{icon} {percentage}%` | Format string to use for the widget button label.                                                              |
-| `max_volume`          | `float`                                              | `100`                  | Maximum value to allow volume sliders to reach. Pulse supports values > 100 but this may result in distortion. |
-| `icons.volume_high`   | `string`                                             | `󰕾`                    | Icon to show for high volume levels.                                                                           |
-| `icons.volume_medium` | `string`                                             | `󰖀`                    | Icon to show for medium volume levels.                                                                         |
-| `icons.volume_low`    | `string`                                             | `󰕿`                    | Icon to show for low volume levels.                                                                            |
-| `icons.muted`         | `string`                                             | `󰝟`                    | Icon to show for muted outputs.                                                                                |
-| `truncate`            | `'start'` or `'middle'` or `'end'` or `off` or `Map` | `off`                  | The location of the ellipses and where to truncate text from. Leave null to avoid truncating. Use the long-hand `Map` version if specifying a length. |
-| `truncate.mode`       | `'start'` or `'middle'` or `'end'` or `off`          | `off`                  | The location of the ellipses and where to truncate text from. Leave null to avoid truncating.                                                         |
-| `truncate.length`     | `integer`                                            | `null`                 | The fixed width (in chars) of the widget. Leave blank to let GTK automatically handle.                                                                |
-| `truncate.max_length` | `integer`                                            | `null`                 | The maximum number of characters before truncating. Leave blank to let GTK automatically handle.                                                      |
+| Name                            | Type                                                 | Default                | Description                                                                                                                       |
+|---------------------------------|------------------------------------------------------|------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `format`                        | `string`                                             | `{icon} {percentage}%` | Format string to use for the widget button label.                                                                                 |
+| `max_volume`                    | `float`                                              | `100`                  | Maximum value to allow volume sliders to reach. Pulse supports values > 100 but this may result in distortion.                    |
+| `icons.volume_high`             | `string`                                             | `󰕾`                    | Icon to show for high volume levels.                                                                                              |
+| `icons.volume_medium`           | `string`                                             | `󰖀`                    | Icon to show for medium volume levels.                                                                                            |
+| `icons.volume_low`              | `string`                                             | `󰕿`                    | Icon to show for low volume levels.                                                                                               |
+| `icons.muted`                   | `string`                                             | `󰝟`                    | Icon to show for muted outputs.                                                                                                   |
+| `truncate`                      | `'start'` or `'middle'` or `'end'` or `off` or `Map` | `off`                  | The location of the ellipses and where to truncate text from. Leave null to avoid truncating. Use the long-hand `Map` version if specifying a length. |
+| `truncate.mode`                 | `'start'` or `'middle'` or `'end'` or `off`          | `off`                  | The location of the ellipses and where to truncate text from. Leave null to avoid truncating.                                     |
+| `truncate.length`               | `integer`                                            | `null`                 | The fixed width (in chars) of the widget. Leave blank to let GTK automatically handle.                                            |
+| `truncate.max_length`           | `integer`                                            | `null`                 | The maximum number of characters before truncating. Leave blank to let GTK automatically handle.                                  |
+| `marquee`                       | `Map`                                                | `false`                | Options for enabling and configuring a marquee (scrolling) effect for long text. Incompatible with `truncate` enabled.            |
+| `marquee.enable`                | `bool`                                               | `false`                | Whether to enable a marquee effect.                                                                                               |
+| `marquee.max_length`            | `integer`                                            | `null`                 | The maximum length of text (roughly, in characters) before it gets truncated and starts scrolling.                                |
+| `marquee.scroll_speed`          | `float`                                              | `0.5`                  | Scroll speed in pixels per frame. Higher values scroll faster.                                                                    |
+| `marquee.pause_duration`        | `integer`                                            | `5000`                 | Duration in milliseconds to pause at each loop point.                                                                             |
+| `marquee.separator`             | `string`                                             | `"    "`               | Separator string to place between the repeated text. Can be any string like `" • "` or `" \| "`.                                 |
+| `marquee.pause_on_hover`        | `bool`                                               | `false`                | Pause scrolling when the mouse cursor hovers over the application title.                                                          |
+| `marquee.play_on_hover`         | `bool`                                               | `false`                | The inverse of `pause_on_hover`: scroll the widget only when hovered. Takes priority over `pause_on_hover`.                         |
 
 <details>
 <summary>JSON</summary>
@@ -133,5 +141,27 @@ The following tokens can be used in the `format` config option:
 | `.popup-volume .apps-box .app-box .title`    | Name of the application playback stream.           |
 | `.popup-volume .apps-box .app-box .slider`   | Application volume slider.                         |
 | `.popup-volume .apps-box .app-box .btn-mute` | Application volume mute toggle button.             |
+
+> [!TIP]
+> When marquee is enabled, the label is wrapped in a `scrolledwindow`.
+> If you were using `>` (direct child) CSS operator, you may need to update your CSS selectors.
+
+```css
+/* Before */
+.volume .app-box > .title {
+  ...
+}
+
+/* After: target both */
+.volume .app-box > .title,
+.volume .app-box > scrolledwindow > viewport > .title {
+  ...
+}
+
+/* But any child selector stays the same */
+.volume .app-box .title {
+  ...
+}
+```
 
 For more information on styling, please see the [styling guide](styling-guide).
